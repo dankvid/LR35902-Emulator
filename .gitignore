@@ -1,40 +1,26 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
-*.iml
-*.ipr
-*.db
-.gradle/
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# CMake build directories
+cmake-build-*/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+out/
 
-### VS Code ###
-.vscode/
+# C/C++ compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
 
-### Mac OS ###
+# Debug files
+*.pdb
+*.ilk
+
+# CLion specific
+.idea/
+
+# General
 .DS_Store
+*.log
+*.tmp

@@ -6,7 +6,11 @@
 #define CPU_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
+/**
+ * GameBoy CPU structure
+ */
 typedef struct {
     // 8-bit
     uint8_t a, f;
@@ -18,9 +22,10 @@ typedef struct {
     uint16_t sp;
     uint16_t pc;
 
-    int halted;
-    int ime;
-    int cycles;
+    // CPU Status
+    bool halted;
+    bool ime;
+    uint32_t cycles;
 } CPU;
 
 void cpu_init(CPU* cpu);

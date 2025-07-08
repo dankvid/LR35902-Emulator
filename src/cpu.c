@@ -129,6 +129,23 @@ void op_jr_nz_r8(CPU* cpu) {
         cpu->cycles += 8; // No jump
     }
 }
+void op_load_b_b(CPU* cpu) { cpu->b = cpu->b; cpu->cycles += 4; }
+void op_load_b_c(CPU* cpu) { cpu->b = cpu->c; cpu->cycles += 4; }
+void op_load_b_d(CPU* cpu) { cpu->b = cpu->d; cpu->cycles += 4; }
+void op_load_b_e(CPU* cpu) { cpu->b = cpu->e; cpu->cycles += 4; }
+void op_load_b_h(CPU* cpu) { cpu->b = cpu->h; cpu->cycles += 4; }
+void op_load_b_l(CPU* cpu) { cpu->b = cpu->l; cpu->cycles += 4; }
+// TODO HL
+void op_load_b_a(CPU* cpu) { cpu->b = cpu->a; cpu->cycles += 4; }
+
+void op_load_c_b(CPU* cpu) { cpu->c = cpu->b; cpu->cycles += 4; }
+void op_load_c_c(CPU* cpu) { cpu->c = cpu->c; cpu->cycles += 4; }
+void op_load_c_d(CPU* cpu) { cpu->c = cpu->d; cpu->cycles += 4; }
+void op_load_c_e(CPU* cpu) { cpu->c = cpu->e; cpu->cycles += 4; }
+void op_load_c_h(CPU* cpu) { cpu->c = cpu->h; cpu->cycles += 4; }
+void op_load_c_l(CPU* cpu) { cpu->c = cpu->l; cpu->cycles += 4; }
+// TODO HL
+void op_load_c_a(CPU* cpu) { cpu->c = cpu->a; cpu->cycles += 4; }
 
 void init_opcode_table() {
     memset(opcode_table, 0, sizeof(opcode_table));
@@ -149,6 +166,20 @@ void init_opcode_table() {
     REGISTER_OPCODE(0xC6, op_add_a_d8);
     REGISTER_OPCODE(0x87, op_add_a_a);
     REGISTER_OPCODE(0x20, op_jr_nz_r8);
+    REGISTER_OPCODE(0x40, op_load_b_b);
+    REGISTER_OPCODE(0x41, op_load_b_c);
+    REGISTER_OPCODE(0x42, op_load_b_d);
+    REGISTER_OPCODE(0x43, op_load_b_e);
+    REGISTER_OPCODE(0x44, op_load_b_h);
+    REGISTER_OPCODE(0x45, op_load_b_l);
+    REGISTER_OPCODE(0x47, op_load_b_a);
+    REGISTER_OPCODE(0x48, op_load_c_b);
+    REGISTER_OPCODE(0x49, op_load_c_c);
+    REGISTER_OPCODE(0x4A, op_load_c_d);
+    REGISTER_OPCODE(0x4B, op_load_c_e);
+    REGISTER_OPCODE(0x4C, op_load_c_h);
+    REGISTER_OPCODE(0x4D, op_load_c_l);
+    REGISTER_OPCODE(0x4F, op_load_c_a);
 }
 
 void cpu_step(CPU* cpu) {

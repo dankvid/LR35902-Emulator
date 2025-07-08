@@ -12,7 +12,7 @@ int main() {
         [0x104] = 0x0E, 0x37,    // LD C, $37
         [0x106] = 0xAF,          // XOR A
         [0x107] = 0x3E, 0x10,    // LD A, $10
-        [0x109] = 0xC6, 0x20,    // ADD A, $20 (korrigiert!)
+        [0x109] = 0xC6, 0x20,    // ADD A, $20
         [0x10B] = 0xFE, 0x30,    // CP $30
         [0x10D] = 0x20, 0x02,    // JR NZ, +2
         [0x10F] = 0x16, 0x99,    // LD D, $99
@@ -28,6 +28,6 @@ int main() {
     fwrite(rom, 1, sizeof(rom), f);
     fclose(f);
 
-    printf("Test-ROM erstellt: test.bin\n");
+    printf("Test-ROM created: test.bin\n");
     return 0;
 }

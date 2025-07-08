@@ -28,10 +28,26 @@ typedef struct {
     uint32_t cycles;
 } CPU;
 
+typedef void (*opcode_func_t)(CPU* cpu);
+
 void cpu_init(CPU* cpu);
 
 void cpu_step(CPU* cpu);
 
 void cpu_print_state(const CPU* cpu);
+
+#define FLAG_Z 0x80
+#define FLAG_N 0x40
+#define FLAG_H 0x20
+#define FLAG_C 0x10
+
+#define SET_FLAG(cpu, flag)   ((cpu)->f |= (flag))
+#define CLEAR_FLAG(cpu, flag) ((cpu)->f &= ~(flag))
+#define GET_FLAG(cpu, flag)   (((cpu)->f & (flag)) != 0)
+
+#define REG_AF(cpu) (((cpu)->a << 8) | (cpu)->f)
+#define REG_BC(cpu) (((cpu)->b << 8) | (cpu)->c)
+#define REG_DE(cpu) (((cpu)->d << 8) | (cpu)->e)
+#define REG_HL(cpu) (((cpu)->h << 8) | (cpu)->l)
 
 #endif // CPU_H

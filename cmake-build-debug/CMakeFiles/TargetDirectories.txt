@@ -1,3 +1,4 @@
 /home/davidg/CLionProjects/LR35902-Emulator/cmake-build-debug/CMakeFiles/LR35902_Emulator.dir
+/home/davidg/CLionProjects/LR35902-Emulator/cmake-build-debug/CMakeFiles/test_rom_generator.dir
 /home/davidg/CLionProjects/LR35902-Emulator/cmake-build-debug/CMakeFiles/edit_cache.dir
 /home/davidg/CLionProjects/LR35902-Emulator/cmake-build-debug/CMakeFiles/rebuild_cache.dir

@@ -93,6 +93,37 @@ build LR35902_Emulator: C_EXECUTABLE_LINKER__LR35902_Emulator_Debug CMakeFiles/L
   TARGET_FILE = LR35902_Emulator
   TARGET_PDB = LR35902_Emulator.dbg
 
+# =============================================================================
+# Object build statements for EXECUTABLE target test_rom_generator
+
+
+#############################################
+# Order-only phony target for test_rom_generator
+
+build cmake_object_order_depends_target_test_rom_generator: phony || .
+
+build CMakeFiles/test_rom_generator.dir/tests/test_rom_generator.c.o: C_COMPILER__test_rom_generator_unscanned_Debug /home/davidg/CLionProjects/LR35902-Emulator/tests/test_rom_generator.c || cmake_object_order_depends_target_test_rom_generator
+  DEP_FILE = CMakeFiles/test_rom_generator.dir/tests/test_rom_generator.c.o.d
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/test_rom_generator.dir
+  OBJECT_FILE_DIR = CMakeFiles/test_rom_generator.dir/tests
+
+
+# =============================================================================
+# Link build statements for EXECUTABLE target test_rom_generator
+
+
+#############################################
+# Link the executable test_rom_generator
+
+build test_rom_generator: C_EXECUTABLE_LINKER__test_rom_generator_Debug CMakeFiles/test_rom_generator.dir/tests/test_rom_generator.c.o
+  FLAGS = -g
+  OBJECT_DIR = CMakeFiles/test_rom_generator.dir
+  POST_BUILD = :
+  PRE_LINK = :
+  TARGET_FILE = test_rom_generator
+  TARGET_PDB = test_rom_generator.dbg
+
 
 #############################################
 # Utility command for edit_cache
@@ -127,7 +158,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 #############################################
 # Folder: /home/davidg/CLionProjects/LR35902-Emulator/cmake-build-debug
 
-build all: phony LR35902_Emulator
+build all: phony LR35902_Emulator test_rom_generator
 
 # =============================================================================
 # Built-in targets

@@ -24,3 +24,4 @@ out/
 .DS_Store
 *.log
 *.tmp
+/test_rom_generator

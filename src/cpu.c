@@ -55,12 +55,13 @@ void op_ld_l_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->l); }
 
 void op_xor_a(CPU* cpu) {
     cpu->a ^= cpu->a; // XOR A with itself results in 0
-    cpu->f = 0x80; // Set Z flag
+    cpu->f = FLAG_Z; // Set Z flag
     cpu->cycles += 4;
 }
 
 void op_jp_a16(CPU* cpu) {
     uint16_t address = mem_read(cpu->pc) | (mem_read(cpu->pc + 1) << 8);
+    cpu->pc += 2;
     cpu->pc = address;
     cpu->cycles += 16;
 }
@@ -86,10 +87,10 @@ void op_cp_d8(CPU* cpu) {
 
     // Set flags
     cpu->f = 0;
-    if (result == 0) cpu->f |= 0x80;         // Z
-    cpu->f |= 0x40;                          // N
-    if ((cpu->a & 0x0F) < (value & 0x0F)) cpu->f |= 0x20; // H
-    if (cpu->a < value) cpu->f |= 0x10;      // C
+    if (result == 0) cpu->f |= FLAG_Z;
+    cpu->f |= FLAG_N;
+    if ((cpu->a & 0x0F) < (value & 0x0F)) cpu->f |= FLAG_H;
+    if (cpu->a < value) cpu->f |= FLAG_C;
 
     cpu->cycles += 8;
 }
@@ -99,12 +100,34 @@ void op_add_a_d8(CPU* cpu) {
     uint16_t result = cpu->a + value;
 
     cpu->f = 0;
-    if ((result & 0xFF) == 0) cpu->f |= 0x80; // Z
-    if ((cpu->a & 0x0F) + (value & 0x0F) > 0x0F) cpu->f |= 0x20; // H
-    if (result > 0xFF) cpu->f |= 0x10; // C
+    if ((result & 0xFF) == 0) cpu->f |= FLAG_Z;
+    if ((cpu->a & 0x0F) + (value & 0x0F) > 0x0F) cpu->f |= FLAG_H;
+    if (result > 0xFF) cpu->f |= FLAG_C;
 
     cpu->a = result & 0xFF;
     cpu->cycles += 8;
+}
+
+void op_add_a_a(CPU* cpu) {
+    uint16_t result = cpu->a + cpu->a;
+
+    cpu->f = 0;
+    if ((result & 0xFF) == 0) cpu->f |= FLAG_Z;
+    if ((cpu->a & 0x0F) + (cpu->a & 0x0F) > 0x0F) cpu->f |= FLAG_H;
+    if (result > 0xFF) cpu->f |= FLAG_C;
+
+    cpu->a = result & 0xFF;
+    cpu->cycles += 4;
+}
+
+void op_jr_nz_r8(CPU* cpu) {
+    int8_t offset = (int8_t)mem_read(cpu->pc++);
+    if (!(cpu->f & FLAG_Z)) { // Z flag not set
+        cpu->pc += offset; // Jump
+        cpu->cycles += 12;
+    } else {
+        cpu->cycles += 8; // No jump
+    }
 }
 
 void init_opcode_table() {
@@ -123,7 +146,9 @@ void init_opcode_table() {
     REGISTER_OPCODE(0xCD, op_call_a16);
     REGISTER_OPCODE(0xC9, op_ret);
     REGISTER_OPCODE(0xFE, op_cp_d8);
-    REGISTER_OPCODE(0x87, op_add_a_d8);
+    REGISTER_OPCODE(0xC6, op_add_a_d8);
+    REGISTER_OPCODE(0x87, op_add_a_a);
+    REGISTER_OPCODE(0x20, op_jr_nz_r8);
 }
 
 void cpu_step(CPU* cpu) {

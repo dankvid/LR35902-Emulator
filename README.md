@@ -1,28 +1,22 @@
 # 🎮 LR35902 Emulator
+A **GameBoy CPU Emulator** written in C.
 
-Ein **GameBoy CPU Emulator** geschrieben in C - ein Lernprojekt für hardwarenahe Programmierung.
+## 📖 About the Project
+This project is a small **learning project** to dive deeper into the world of low-level programming and the C programming language. The goal is to emulate the **LR35902 processor** (the CPU of the original Nintendo Game Boy) while gaining a better understanding of:
+- 🔧 Low-level programming
+- ⚡ CPU architecture and instruction sets
+- 🎯 Precise timing emulation
+- 📚 Low-level C programming
 
-## 📖 Über das Projekt
+## 🎯 Project Goal
+The emulated GameBoy CPU will later serve as the foundation for a **full-featured GameBoy emulator**. Currently, the focus is on correctly implementing the core functionalities of the LR35902 CPU.
 
-Dieses Projekt ist ein kleines **Lernprojekt**, um tiefer in die Welt der hardwarenahen Programmierung und der Programmiersprache C einzutauchen. Das Ziel ist es, den **LR35902 Prozessor** (die CPU des originalen Nintendo Game Boy) zu emulieren und dabei ein besseres Verständnis für:
-
-- 🔧 Hardwarenahe Programmierung
-- ⚡ CPU-Architektur und Befehlssätze
-- 🎯 Präzise Timing-Emulation
-- 📚 C-Programmierung auf niedrigem Level
-
-## 🎯 Projektziel
-
-Die emulierte GameBoy CPU soll später als Grundlage für einen **vollwertigen GameBoy Emulator** dienen. Momentan liegt der Fokus darauf, die Kernfunktionalitäten der LR35902 CPU korrekt zu implementieren.
-
-## 🏗️ Technische Details
-
-- **Sprache**: C
-- **Build-System**: CMake
-- **Ziel-CPU**: Sharp LR35902 (8-bit CPU basierend auf Z80)
+## 🏗️ Technical Details
+- **Language**: C
+- **Build System**: CMake
+- **Target CPU**: Sharp LR35902 (8-bit CPU based on Z80)
 
 ## 🚀 Build & Run
-
 ```bash
 mkdir build
 cd build
@@ -30,13 +24,11 @@ cmake ..
 make
 ```
 
-## 📚 Lernziele
-
-- Verständnis von CPU-Zyklen und Instruction Sets
-- Implementierung von Registern und Memory Management
-- Debugging komplexer Hardware-Emulation
-- Saubere C-Code-Architektur
+## 📚 Learning Goals
+- Understanding CPU cycles and instruction sets
+- Implementation of registers and memory management
+- Debugging complex hardware emulation
+- Clean C code architecture
 
 ---
-
-*Dies ist ein Lernprojekt - Feedback und Verbesserungsvorschläge sind willkommen!* 🙂
+*This is a learning project - feedback and suggestions for improvement are welcome!* 🙂

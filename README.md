@@ -15,6 +15,7 @@ The emulated GameBoy CPU will later serve as the foundation for a **full-feature
 - **Language**: C
 - **Build System**: CMake
 - **Target CPU**: Sharp LR35902 (8-bit CPU based on Z80)
+- **Documentation of the instruction set can be found [here](https://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)**
 
 ## 🚀 Build & Run
 ```bash
@@ -32,3 +33,4 @@ make
 
 ---
 *This is a learning project - feedback and suggestions for improvement are welcome!* 🙂
+

@@ -1,5 +1,6 @@
 # CMake build directories
 cmake-build-*/
+cmake-build-debug/
 build/
 out/
 

@@ -267,6 +267,55 @@ void op_load_a_hlp(CPU* cpu) {
 }
 void op_load_a_a(CPU* cpu) { cpu->a = cpu->a; cpu->cycles += 4; }
 
+void alu_add(CPU* cpu, uint8_t value) {
+    uint16_t result = cpu->a + value;
+
+    cpu->f = 0;
+    if ((result & 0xFF) == 0) cpu->f |= FLAG_Z;
+    if (((cpu->a & 0x0F) + (value & 0x0F)) > 0x0F) cpu->f |= FLAG_H;
+    if (result > 0xFF) cpu->f |= FLAG_C;
+
+    cpu->a = result & 0xFF;
+}
+
+void op_add_a_b(CPU* cpu) { alu_add(cpu, cpu->b); cpu->cycles += 4; }
+void op_add_a_c(CPU* cpu) { alu_add(cpu, cpu->c); cpu->cycles += 4; }
+void op_add_a_d(CPU* cpu) { alu_add(cpu, cpu->d); cpu->cycles += 4; }
+void op_add_a_e(CPU* cpu) { alu_add(cpu, cpu->e); cpu->cycles += 4; }
+void op_add_a_h(CPU* cpu) { alu_add(cpu, cpu->h); cpu->cycles += 4; }
+void op_add_a_l(CPU* cpu) { alu_add(cpu, cpu->l); cpu->cycles += 4; }
+void op_add_a_hlp(CPU* cpu) {
+    uint16_t hl = cpu->h << 8 | cpu->l;
+    alu_add(cpu, mem_read(hl));
+    cpu->cycles += 8;
+}
+
+void alu_adc(CPU* cpu, uint8_t value) {
+    uint8_t carry = cpu->f & FLAG_C ? 1 : 0;
+    uint16_t result = cpu->a + value + carry;
+
+    cpu->f = 0;
+    if ((result & 0xFF) == 0) cpu->f |= FLAG_Z;
+    if ((cpu->a & 0x0F) + (value & 0x0F) + carry > 0x0F) cpu->f |= FLAG_H;
+    if (result > 0xFF) cpu->f |= FLAG_C;
+
+    cpu->a = result & 0xFF;
+}
+
+void op_adc_a_b(CPU* cpu) { alu_adc(cpu, cpu->b); cpu->cycles += 4; }
+void op_adc_a_c(CPU* cpu) { alu_adc(cpu, cpu->c); cpu->cycles += 4; }
+void op_adc_a_d(CPU* cpu) { alu_adc(cpu, cpu->d); cpu->cycles += 4; }
+void op_adc_a_e(CPU* cpu) { alu_adc(cpu, cpu->e); cpu->cycles += 4; }
+void op_adc_a_h(CPU* cpu) { alu_adc(cpu, cpu->h); cpu->cycles += 4; }
+void op_adc_a_l(CPU* cpu) { alu_adc(cpu, cpu->l); cpu->cycles += 4; }
+void op_adc_a_hlp(CPU* cpu) {
+    uint16_t hl = cpu->h << 8 | cpu->l;
+    alu_adc(cpu, mem_read(hl));
+    cpu->cycles += 8;
+}
+void op_adc_a_a(CPU* cpu) {alu_adc(cpu, cpu->a); cpu->cycles += 4; }
+
+
 void init_opcode_table() {
     memset(opcode_table, 0, sizeof(opcode_table));
 
@@ -350,6 +399,21 @@ void init_opcode_table() {
     REGISTER_OPCODE(0x7D, op_load_a_l);
     REGISTER_OPCODE(0x7E, op_load_a_hlp);
     REGISTER_OPCODE(0x7F, op_load_a_a);
+    REGISTER_OPCODE(0x80, op_add_a_b);
+    REGISTER_OPCODE(0x81, op_add_a_c);
+    REGISTER_OPCODE(0x82, op_add_a_d);
+    REGISTER_OPCODE(0x83, op_add_a_e);
+    REGISTER_OPCODE(0x84, op_add_a_h);
+    REGISTER_OPCODE(0x85, op_add_a_l);
+    REGISTER_OPCODE(0x86, op_add_a_hlp);
+    REGISTER_OPCODE(0x88, op_adc_a_b);
+    REGISTER_OPCODE(0x89, op_adc_a_c);
+    REGISTER_OPCODE(0x8A, op_adc_a_d);
+    REGISTER_OPCODE(0x8B, op_adc_a_e);
+    REGISTER_OPCODE(0x8C, op_adc_a_h);
+    REGISTER_OPCODE(0x8D, op_adc_a_l);
+    REGISTER_OPCODE(0x8E, op_adc_a_hlp);
+    REGISTER_OPCODE(0x8F, op_adc_a_a);
 }
 
 void cpu_step(CPU* cpu) {
@@ -365,7 +429,8 @@ void cpu_step(CPU* cpu) {
 void execute_opcode(CPU* cpu, uint8_t opcode) {
     opcode_func_t handler = opcode_table[opcode];
 
-    if (handler != NULL) {
+    // NULL
+    if (handler != 0) {
         handler(cpu);
     } else {
         printf("Unbekannter Opcode: 0x%02X bei PC: 0x%04X\n", opcode, cpu->pc - 1);

@@ -6,7 +6,7 @@ This project is a small **learning project** to dive deeper into the world of lo
 - 🔧 Low-level programming
 - ⚡ CPU architecture and instruction sets
 - 🎯 Precise timing emulation
-- 📚 Low-level C programming
+- 📚 C programming
 
 ## 🎯 Project Goal
 The emulated GameBoy CPU will later serve as the foundation for a **full-featured GameBoy emulator**. Currently, the focus is on correctly implementing the core functionalities of the LR35902 CPU.
@@ -33,4 +33,5 @@ make
 
 ---
 *This is a learning project - feedback and suggestions for improvement are welcome!* 🙂
+
 

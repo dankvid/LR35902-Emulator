@@ -36,37 +36,37 @@ void cpu_init(CPU* cpu) {
     init_opcode_table();
 }
 
-void op_ld_r_d8(CPU* cpu, uint8_t* reg) {
+static void op_ld_r_d8(CPU* cpu, uint8_t* reg) {
     *reg = mem_read(cpu->pc++);
     cpu->cycles += 8;
 }
 
-void op_nop(CPU* cpu) {
+static void op_nop(CPU* cpu) {
     cpu->cycles += 4;
 }
 
-void op_ld_a_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->a); }
-void op_ld_b_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->b); }
-void op_ld_c_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->c); }
-void op_ld_d_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->d); }
-void op_ld_e_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->e); }
-void op_ld_h_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->h); }
-void op_ld_l_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->l); }
+static void op_ld_a_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->a); }
+static void op_ld_b_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->b); }
+static void op_ld_c_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->c); }
+static void op_ld_d_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->d); }
+static void op_ld_e_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->e); }
+static void op_ld_h_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->h); }
+static void op_ld_l_d8(CPU* cpu) { op_ld_r_d8(cpu, &cpu->l); }
 
-void op_xor_a(CPU* cpu) {
+static void op_xor_a(CPU* cpu) {
     cpu->a ^= cpu->a; // XOR A with itself results in 0
     cpu->f = FLAG_Z; // Set Z flag
     cpu->cycles += 4;
 }
 
-void op_jp_a16(CPU* cpu) {
+static void op_jp_a16(CPU* cpu) {
     uint16_t address = mem_read(cpu->pc) | (mem_read(cpu->pc + 1) << 8);
     cpu->pc += 2;
     cpu->pc = address;
     cpu->cycles += 16;
 }
 
-void op_call_a16(CPU* cpu) {
+static void op_call_a16(CPU* cpu) {
     uint16_t address = mem_read(cpu->pc) | (mem_read(cpu->pc + 1) << 8);
     cpu->sp -= 2; // Stack pointer decrement
     mem_write(cpu->sp, cpu->pc & 0xFF); // Low byte
@@ -75,13 +75,13 @@ void op_call_a16(CPU* cpu) {
     cpu->cycles += 24;
 }
 
-void op_ret(CPU* cpu) {
+static void op_ret(CPU* cpu) {
     cpu->pc = mem_read(cpu->sp) | (mem_read(cpu->sp + 1) << 8); // Load PC from stack
     cpu->sp += 2; // Stack pointer increment
     cpu->cycles += 16;
 }
 
-void op_cp_d8(CPU* cpu) {
+static void op_cp_d8(CPU* cpu) {
     uint8_t value = mem_read(cpu->pc++);
     uint8_t result = cpu->a - value;
 
@@ -95,7 +95,7 @@ void op_cp_d8(CPU* cpu) {
     cpu->cycles += 8;
 }
 
-void op_add_a_d8(CPU* cpu) {
+static void op_add_a_d8(CPU* cpu) {
     uint8_t value = mem_read(cpu->pc++);
     uint16_t result = cpu->a + value;
 
@@ -108,7 +108,7 @@ void op_add_a_d8(CPU* cpu) {
     cpu->cycles += 8;
 }
 
-void op_add_a_a(CPU* cpu) {
+static void op_add_a_a(CPU* cpu) {
     uint16_t result = cpu->a + cpu->a;
 
     cpu->f = 0;
@@ -120,7 +120,7 @@ void op_add_a_a(CPU* cpu) {
     cpu->cycles += 4;
 }
 
-void op_jr_nz_r8(CPU* cpu) {
+static void op_jr_nz_r8(CPU* cpu) {
     int8_t offset = (int8_t)mem_read(cpu->pc++);
     if (!(cpu->f & FLAG_Z)) { // Z flag not set
         cpu->pc += offset; // Jump
@@ -129,145 +129,145 @@ void op_jr_nz_r8(CPU* cpu) {
         cpu->cycles += 8; // No jump
     }
 }
-void op_load_b_b(CPU* cpu) { cpu->b = cpu->b; cpu->cycles += 4; }
-void op_load_b_c(CPU* cpu) { cpu->b = cpu->c; cpu->cycles += 4; }
-void op_load_b_d(CPU* cpu) { cpu->b = cpu->d; cpu->cycles += 4; }
-void op_load_b_e(CPU* cpu) { cpu->b = cpu->e; cpu->cycles += 4; }
-void op_load_b_h(CPU* cpu) { cpu->b = cpu->h; cpu->cycles += 4; }
-void op_load_b_l(CPU* cpu) { cpu->b = cpu->l; cpu->cycles += 4; }
-void op_load_b_hlp(CPU* cpu) {
+static void op_load_b_b(CPU* cpu) { cpu->b = cpu->b; cpu->cycles += 4; }
+static void op_load_b_c(CPU* cpu) { cpu->b = cpu->c; cpu->cycles += 4; }
+static void op_load_b_d(CPU* cpu) { cpu->b = cpu->d; cpu->cycles += 4; }
+static void op_load_b_e(CPU* cpu) { cpu->b = cpu->e; cpu->cycles += 4; }
+static void op_load_b_h(CPU* cpu) { cpu->b = cpu->h; cpu->cycles += 4; }
+static void op_load_b_l(CPU* cpu) { cpu->b = cpu->l; cpu->cycles += 4; }
+static void op_load_b_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->b = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_b_a(CPU* cpu) { cpu->b = cpu->a; cpu->cycles += 4; }
+static void op_load_b_a(CPU* cpu) { cpu->b = cpu->a; cpu->cycles += 4; }
 
-void op_load_c_b(CPU* cpu) { cpu->c = cpu->b; cpu->cycles += 4; }
-void op_load_c_c(CPU* cpu) { cpu->c = cpu->c; cpu->cycles += 4; }
-void op_load_c_d(CPU* cpu) { cpu->c = cpu->d; cpu->cycles += 4; }
-void op_load_c_e(CPU* cpu) { cpu->c = cpu->e; cpu->cycles += 4; }
-void op_load_c_h(CPU* cpu) { cpu->c = cpu->h; cpu->cycles += 4; }
-void op_load_c_l(CPU* cpu) { cpu->c = cpu->l; cpu->cycles += 4; }
-void op_load_c_hlp(CPU* cpu) {
+static void op_load_c_b(CPU* cpu) { cpu->c = cpu->b; cpu->cycles += 4; }
+static void op_load_c_c(CPU* cpu) { cpu->c = cpu->c; cpu->cycles += 4; }
+static void op_load_c_d(CPU* cpu) { cpu->c = cpu->d; cpu->cycles += 4; }
+static void op_load_c_e(CPU* cpu) { cpu->c = cpu->e; cpu->cycles += 4; }
+static void op_load_c_h(CPU* cpu) { cpu->c = cpu->h; cpu->cycles += 4; }
+static void op_load_c_l(CPU* cpu) { cpu->c = cpu->l; cpu->cycles += 4; }
+static void op_load_c_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->c = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_c_a(CPU* cpu) { cpu->c = cpu->a; cpu->cycles += 4; }
+static void op_load_c_a(CPU* cpu) { cpu->c = cpu->a; cpu->cycles += 4; }
 
-void op_load_d_b(CPU* cpu) { cpu->d = cpu->b; cpu->cycles += 4; }
-void op_load_d_c(CPU* cpu) { cpu->d = cpu->c; cpu->cycles += 4; }
-void op_load_d_d(CPU* cpu) { cpu->d = cpu->d; cpu->cycles += 4; }
-void op_load_d_e(CPU* cpu) { cpu->d = cpu->e; cpu->cycles += 4; }
-void op_load_d_h(CPU* cpu) { cpu->d = cpu->h; cpu->cycles += 4; }
-void op_load_d_l(CPU* cpu) { cpu->d = cpu->l; cpu->cycles += 4; }
-void op_load_d_hlp(CPU* cpu) {
+static void op_load_d_b(CPU* cpu) { cpu->d = cpu->b; cpu->cycles += 4; }
+static void op_load_d_c(CPU* cpu) { cpu->d = cpu->c; cpu->cycles += 4; }
+static void op_load_d_d(CPU* cpu) { cpu->d = cpu->d; cpu->cycles += 4; }
+static void op_load_d_e(CPU* cpu) { cpu->d = cpu->e; cpu->cycles += 4; }
+static void op_load_d_h(CPU* cpu) { cpu->d = cpu->h; cpu->cycles += 4; }
+static void op_load_d_l(CPU* cpu) { cpu->d = cpu->l; cpu->cycles += 4; }
+static void op_load_d_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->d = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_d_a(CPU* cpu) { cpu->d = cpu->a; cpu->cycles += 4; }
+static void op_load_d_a(CPU* cpu) { cpu->d = cpu->a; cpu->cycles += 4; }
 
-void op_load_e_b(CPU* cpu) { cpu->e = cpu->b; cpu->cycles += 4; }
-void op_load_e_c(CPU* cpu) { cpu->e = cpu->c; cpu->cycles += 4; }
-void op_load_e_d(CPU* cpu) { cpu->e = cpu->d; cpu->cycles += 4; }
-void op_load_e_e(CPU* cpu) { cpu->e = cpu->e; cpu->cycles += 4; }
-void op_load_e_h(CPU* cpu) { cpu->e = cpu->h; cpu->cycles += 4; }
-void op_load_e_l(CPU* cpu) { cpu->e = cpu->l; cpu->cycles += 4; }
-void op_load_e_hlp(CPU* cpu) {
+static void op_load_e_b(CPU* cpu) { cpu->e = cpu->b; cpu->cycles += 4; }
+static void op_load_e_c(CPU* cpu) { cpu->e = cpu->c; cpu->cycles += 4; }
+static void op_load_e_d(CPU* cpu) { cpu->e = cpu->d; cpu->cycles += 4; }
+static void op_load_e_e(CPU* cpu) { cpu->e = cpu->e; cpu->cycles += 4; }
+static void op_load_e_h(CPU* cpu) { cpu->e = cpu->h; cpu->cycles += 4; }
+static void op_load_e_l(CPU* cpu) { cpu->e = cpu->l; cpu->cycles += 4; }
+static void op_load_e_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->e = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_e_a(CPU* cpu) { cpu->e = cpu->a; cpu->cycles += 4; }
+static void op_load_e_a(CPU* cpu) { cpu->e = cpu->a; cpu->cycles += 4; }
 
-void op_load_h_b(CPU* cpu) { cpu->h = cpu->b; cpu->cycles += 4; }
-void op_load_h_c(CPU* cpu) { cpu->h = cpu->c; cpu->cycles += 4; }
-void op_load_h_d(CPU* cpu) { cpu->h = cpu->d; cpu->cycles += 4; }
-void op_load_h_e(CPU* cpu) { cpu->h = cpu->e; cpu->cycles += 4; }
-void op_load_h_h(CPU* cpu) { cpu->h = cpu->h; cpu->cycles += 4; }
-void op_load_h_l(CPU* cpu) { cpu->h = cpu->l; cpu->cycles += 4; }
-void op_load_h_hlp(CPU* cpu) {
+static void op_load_h_b(CPU* cpu) { cpu->h = cpu->b; cpu->cycles += 4; }
+static void op_load_h_c(CPU* cpu) { cpu->h = cpu->c; cpu->cycles += 4; }
+static void op_load_h_d(CPU* cpu) { cpu->h = cpu->d; cpu->cycles += 4; }
+static void op_load_h_e(CPU* cpu) { cpu->h = cpu->e; cpu->cycles += 4; }
+static void op_load_h_h(CPU* cpu) { cpu->h = cpu->h; cpu->cycles += 4; }
+static void op_load_h_l(CPU* cpu) { cpu->h = cpu->l; cpu->cycles += 4; }
+static  op_load_h_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->h = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_h_a(CPU* cpu) { cpu->h = cpu->a; cpu->cycles += 4; }
+static void op_load_h_a(CPU* cpu) { cpu->h = cpu->a; cpu->cycles += 4; }
 
-void op_load_l_b(CPU* cpu) { cpu->l = cpu->b; cpu->cycles += 4; }
-void op_load_l_c(CPU* cpu) { cpu->l = cpu->c; cpu->cycles += 4; }
-void op_load_l_d(CPU* cpu) { cpu->l = cpu->d; cpu->cycles += 4; }
-void op_load_l_e(CPU* cpu) { cpu->l = cpu->e; cpu->cycles += 4; }
-void op_load_l_h(CPU* cpu) { cpu->l = cpu->h; cpu->cycles += 4; }
-void op_load_l_l(CPU* cpu) { cpu->l = cpu->l; cpu->cycles += 4; }
-void op_load_l_hlp(CPU* cpu) {
+static void op_load_l_b(CPU* cpu) { cpu->l = cpu->b; cpu->cycles += 4; }
+static void op_load_l_c(CPU* cpu) { cpu->l = cpu->c; cpu->cycles += 4; }
+static void op_load_l_d(CPU* cpu) { cpu->l = cpu->d; cpu->cycles += 4; }
+static void op_load_l_e(CPU* cpu) { cpu->l = cpu->e; cpu->cycles += 4; }
+static void op_load_l_h(CPU* cpu) { cpu->l = cpu->h; cpu->cycles += 4; }
+static void op_load_l_l(CPU* cpu) { cpu->l = cpu->l; cpu->cycles += 4; }
+static void op_load_l_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->l = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_l_a(CPU* cpu) { cpu->l = cpu->a; cpu->cycles += 4; }
+static void op_load_l_a(CPU* cpu) { cpu->l = cpu->a; cpu->cycles += 4; }
 
-void op_load_hlp_b(CPU* cpu) {
+static void op_load_hlp_b(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->b);
     cpu->cycles += 8;
 }
 
-void op_load_hlp_c(CPU* cpu) {
+static void op_load_hlp_c(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->c);
     cpu->cycles += 8;
 }
 
-void op_load_hlp_d(CPU* cpu) {
+static void op_load_hlp_d(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->d);
     cpu->cycles += 8;
 }
 
-void op_load_hlp_e(CPU* cpu) {
+static void op_load_hlp_e(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->e);
     cpu->cycles += 8;
 }
 
-void op_load_hlp_h(CPU* cpu) {
+static void op_load_hlp_h(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->h);
     cpu->cycles += 8;
 }
 
-void op_load_hlp_l(CPU* cpu) {
+static void op_load_hlp_l(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->l);
     cpu->cycles += 8;
 }
 
-void op_halt(CPU* cpu) {
+static void op_halt(CPU* cpu) {
     cpu->halted = 1;
     cpu->cycles += 4;
 }
 
-void op_load_hlp_a(CPU* cpu) {
+static void op_load_hlp_a(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     mem_write(hl, cpu->a);
     cpu->cycles += 8;
 }
 
-void op_load_a_b(CPU* cpu) { cpu->a = cpu->b; cpu->cycles += 4; }
-void op_load_a_c(CPU* cpu) { cpu->a = cpu->c; cpu->cycles += 4; }
-void op_load_a_d(CPU* cpu) { cpu->a = cpu->d; cpu->cycles += 4; }
-void op_load_a_e(CPU* cpu) { cpu->a = cpu->e; cpu->cycles += 4; }
-void op_load_a_h(CPU* cpu) { cpu->a = cpu->h; cpu->cycles += 4; }
-void op_load_a_l(CPU* cpu) { cpu->a = cpu->l; cpu->cycles += 4; }
-void op_load_a_hlp(CPU* cpu) {
+static void op_load_a_b(CPU* cpu) { cpu->a = cpu->b; cpu->cycles += 4; }
+static void op_load_a_c(CPU* cpu) { cpu->a = cpu->c; cpu->cycles += 4; }
+static void op_load_a_d(CPU* cpu) { cpu->a = cpu->d; cpu->cycles += 4; }
+static void op_load_a_e(CPU* cpu) { cpu->a = cpu->e; cpu->cycles += 4; }
+static void op_load_a_h(CPU* cpu) { cpu->a = cpu->h; cpu->cycles += 4; }
+static void op_load_a_l(CPU* cpu) { cpu->a = cpu->l; cpu->cycles += 4; }
+static void op_load_a_hlp(CPU* cpu) {
     uint16_t hl = (cpu->h << 8) | cpu->l;
     cpu->a = mem_read(hl);
     cpu->cycles += 8;
 }
-void op_load_a_a(CPU* cpu) { cpu->a = cpu->a; cpu->cycles += 4; }
+static void op_load_a_a(CPU* cpu) { cpu->a = cpu->a; cpu->cycles += 4; }
 
-void alu_add(CPU* cpu, uint8_t value) {
+static void alu_add(CPU* cpu, uint8_t value) {
     uint16_t result = cpu->a + value;
 
     cpu->f = 0;
@@ -278,19 +278,19 @@ void alu_add(CPU* cpu, uint8_t value) {
     cpu->a = result & 0xFF;
 }
 
-void op_add_a_b(CPU* cpu) { alu_add(cpu, cpu->b); cpu->cycles += 4; }
-void op_add_a_c(CPU* cpu) { alu_add(cpu, cpu->c); cpu->cycles += 4; }
-void op_add_a_d(CPU* cpu) { alu_add(cpu, cpu->d); cpu->cycles += 4; }
-void op_add_a_e(CPU* cpu) { alu_add(cpu, cpu->e); cpu->cycles += 4; }
-void op_add_a_h(CPU* cpu) { alu_add(cpu, cpu->h); cpu->cycles += 4; }
-void op_add_a_l(CPU* cpu) { alu_add(cpu, cpu->l); cpu->cycles += 4; }
-void op_add_a_hlp(CPU* cpu) {
+static void op_add_a_b(CPU* cpu) { alu_add(cpu, cpu->b); cpu->cycles += 4; }
+static void op_add_a_c(CPU* cpu) { alu_add(cpu, cpu->c); cpu->cycles += 4; }
+static void op_add_a_d(CPU* cpu) { alu_add(cpu, cpu->d); cpu->cycles += 4; }
+static void op_add_a_e(CPU* cpu) { alu_add(cpu, cpu->e); cpu->cycles += 4; }
+static void op_add_a_h(CPU* cpu) { alu_add(cpu, cpu->h); cpu->cycles += 4; }
+static void op_add_a_l(CPU* cpu) { alu_add(cpu, cpu->l); cpu->cycles += 4; }
+static void op_add_a_hlp(CPU* cpu) {
     uint16_t hl = cpu->h << 8 | cpu->l;
     alu_add(cpu, mem_read(hl));
     cpu->cycles += 8;
 }
 
-void alu_adc(CPU* cpu, uint8_t value) {
+static void alu_adc(CPU* cpu, uint8_t value) {
     uint8_t carry = cpu->f & FLAG_C ? 1 : 0;
     uint16_t result = cpu->a + value + carry;
 
@@ -302,21 +302,23 @@ void alu_adc(CPU* cpu, uint8_t value) {
     cpu->a = result & 0xFF;
 }
 
-void op_adc_a_b(CPU* cpu) { alu_adc(cpu, cpu->b); cpu->cycles += 4; }
-void op_adc_a_c(CPU* cpu) { alu_adc(cpu, cpu->c); cpu->cycles += 4; }
-void op_adc_a_d(CPU* cpu) { alu_adc(cpu, cpu->d); cpu->cycles += 4; }
-void op_adc_a_e(CPU* cpu) { alu_adc(cpu, cpu->e); cpu->cycles += 4; }
-void op_adc_a_h(CPU* cpu) { alu_adc(cpu, cpu->h); cpu->cycles += 4; }
-void op_adc_a_l(CPU* cpu) { alu_adc(cpu, cpu->l); cpu->cycles += 4; }
-void op_adc_a_hlp(CPU* cpu) {
+static void op_adc_a_b(CPU* cpu) { alu_adc(cpu, cpu->b); cpu->cycles += 4; }
+static void op_adc_a_c(CPU* cpu) { alu_adc(cpu, cpu->c); cpu->cycles += 4; }
+static void op_adc_a_d(CPU* cpu) { alu_adc(cpu, cpu->d); cpu->cycles += 4; }
+static void op_adc_a_e(CPU* cpu) { alu_adc(cpu, cpu->e); cpu->cycles += 4; }
+static void op_adc_a_h(CPU* cpu) { alu_adc(cpu, cpu->h); cpu->cycles += 4; }
+static void op_adc_a_l(CPU* cpu) { alu_adc(cpu, cpu->l); cpu->cycles += 4; }
+static void op_adc_a_hlp(CPU* cpu) {
     uint16_t hl = cpu->h << 8 | cpu->l;
     alu_adc(cpu, mem_read(hl));
     cpu->cycles += 8;
 }
-void op_adc_a_a(CPU* cpu) {alu_adc(cpu, cpu->a); cpu->cycles += 4; }
+static void op_adc_a_a(CPU* cpu) {alu_adc(cpu, cpu->a); cpu->cycles += 4; }
 
 
-void init_opcode_table() {
+
+
+static void init_opcode_table() {
     memset(opcode_table, 0, sizeof(opcode_table));
 
     REGISTER_OPCODE(0x00, op_nop);

@@ -31,8 +31,7 @@ make
 - Debugging complex hardware emulation
 - Clean C code architecture
 
----
-*This is a learning project - feedback and suggestions for improvement are welcome!* 🙂
+
 
 
 

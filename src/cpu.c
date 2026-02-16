@@ -350,7 +350,45 @@ static void op_sbc_a_hlp(CPU* cpu) {
 }
 static void op_sbc_a_a(CPU* cpu) { alu_sbc(cpu, cpu->a); cpu->cycles += 4; }
 
-// TODO implement 0xAx ...
+static void alu_and(CPU* cpu, uint8_t value) {
+    cpu->a &= value;
+
+    cpu->f = 0;
+    if (cpu->a == 0) cpu->f |= FLAG_Z;
+    cpu->f |= FLAG_H;
+}
+
+static void op_and_b(CPU* cpu) { alu_and(cpu, cpu->b); cpu->cycles += 4; }
+static void op_and_c(CPU* cpu) {alu_and(cpu, cpu->c); cpu->cycles += 4; }
+static void op_and_d(CPU* cpu) { alu_and(cpu, cpu->d); cpu->cycles += 4; }
+static void op_and_e(CPU* cpu) { alu_and(cpu, cpu->e); cpu->cycles += 4; }
+static void op_and_h(CPU* cpu) { alu_and(cpu, cpu->h); cpu->cycles += 4; }
+static void op_and_l(CPU* cpu) { alu_and(cpu, cpu->l); cpu->cycles += 4; }
+static void op_and_hlp(CPU* cpu) {
+    alu_and(cpu, mem_read(cpu_get_hl(cpu)));
+    cpu->cycles += 8;
+}
+static void op_and_a(CPU* cpu) { alu_and(cpu, cpu->a); cpu->cycles += 4; }
+
+static void alu_xor(CPU* cpu, uint8_t value) {
+    cpu->a ^= value;
+
+    cpu->f = 0;
+    if (cpu->a == 0) cpu->f |= FLAG_Z;
+}
+
+static void op_xor_b(CPU* cpu) { alu_xor(cpu, cpu->b); cpu->cycles += 4; }
+static void op_xor_c(CPU* cpu) { alu_xor(cpu, cpu->c); cpu->cycles += 4; }
+static void op_xor_d(CPU* cpu) { alu_xor(cpu, cpu->d); cpu->cycles += 4; }
+static void op_xor_e(CPU* cpu) { alu_xor(cpu, cpu->e); cpu->cycles += 4; }
+static void op_xor_h(CPU* cpu) { alu_xor(cpu, cpu->h); cpu->cycles += 4; }
+static void op_xor_l(CPU* cpu) { alu_xor(cpu, cpu->l); cpu->cycles += 4; }
+static void op_xor_hlp(CPU* cpu) {
+    alu_xor(cpu, mem_read(cpu_get_hl(cpu)));
+    cpu->cycles += 8;
+}
+// xor_a already implemented
+
 
 static void init_opcode_table() {
     memset(opcode_table, 0, sizeof(opcode_table));
@@ -363,7 +401,6 @@ static void init_opcode_table() {
     REGISTER_OPCODE(0x1E, op_ld_e_d8);
     REGISTER_OPCODE(0x26, op_ld_h_d8);
     REGISTER_OPCODE(0x2E, op_ld_l_d8);
-    REGISTER_OPCODE(0xAF, op_xor_a);
     REGISTER_OPCODE(0xC3, op_jp_a16);
     REGISTER_OPCODE(0xCD, op_call_a16);
     REGISTER_OPCODE(0xC9, op_ret);
@@ -466,6 +503,22 @@ static void init_opcode_table() {
     REGISTER_OPCODE(0x9D, op_sbc_a_l);
     REGISTER_OPCODE(0x9E, op_sbc_a_hlp);
     REGISTER_OPCODE(0x9F, op_sbc_a_a);
+    REGISTER_OPCODE(0xA0, op_and_b);
+    REGISTER_OPCODE(0xA1, op_and_c);
+    REGISTER_OPCODE(0xA2, op_and_d);
+    REGISTER_OPCODE(0xA3, op_and_e);
+    REGISTER_OPCODE(0xA4, op_and_h);
+    REGISTER_OPCODE(0xA5, op_and_l);
+    REGISTER_OPCODE(0xA6, op_and_hlp);
+    REGISTER_OPCODE(0xA7, op_and_a);
+    REGISTER_OPCODE(0xA8, op_xor_b);
+    REGISTER_OPCODE(0xA9, op_xor_c);
+    REGISTER_OPCODE(0xAA, op_xor_d);
+    REGISTER_OPCODE(0xAB, op_xor_e);
+    REGISTER_OPCODE(0xAC, op_xor_h);
+    REGISTER_OPCODE(0xAD, op_xor_l);
+    REGISTER_OPCODE(0xAE, op_xor_hlp);
+    REGISTER_OPCODE(0xAF, op_xor_a);
 }
 
 void cpu_step(CPU* cpu) {

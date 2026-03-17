@@ -9,10 +9,15 @@
 #include <stdlib.h>
 
 #define REGISTER_OPCODE(code, func) opcode_table[code] = func
+#define REGISTER_CB_OPCODE(code, func) cb_opcode_table[code] = func
 
 static opcode_func_t opcode_table[256];
+static opcode_func_t cb_opcode_table[256];
 static void execute_opcode(CPU* cpu, uint8_t opcode);
+static void execute_cb_opcode(CPU* cpu, uint8_t opcode);
 static void init_opcode_table(void);
+static void init_cb_opcode_table(void);
+
 static void alu_add(CPU* cpu, uint8_t value);
 static void alu_adc(CPU* cpu, uint8_t value);
 static void alu_sub(CPU* cpu, uint8_t value);
@@ -42,6 +47,7 @@ void cpu_init(CPU* cpu) {
     cpu->cycles = 0; // Cycle count
 
     init_opcode_table();
+    init_cb_opcode_table();
 }
 
 static uint16_t cpu_get_hl(const CPU* cpu) {
@@ -489,6 +495,11 @@ static void op_ld_sp_hl(CPU* cpu) {
 static void op_jp_hl(CPU* cpu) {
     cpu->pc = cpu_get_hl(cpu);
     cpu->cycles += 4;
+}
+
+static void op_prefix_cb(CPU* cpu) {
+    uint8_t cb_opcode = mem_read(cpu->pc++);
+    execute_cb_opcode(cpu, cb_opcode);
 }
 
 static void op_ld_r_d8(CPU* cpu, uint8_t* reg) {
@@ -1160,6 +1171,11 @@ static void init_opcode_table() {
     REGISTER_OPCODE(0xBD, op_cp_l);
     REGISTER_OPCODE(0xBE, op_cp_hlp);
     REGISTER_OPCODE(0xBF, op_cp_a);
+    REGISTER_OPCODE(0xCB, op_prefix_cb);
+}
+
+static void init_cb_opcode_table(void) {
+    memset(cb_opcode_table, 0, sizeof(cb_opcode_table));
 }
 
 void cpu_step(CPU* cpu) {
@@ -1180,6 +1196,17 @@ void execute_opcode(CPU* cpu, uint8_t opcode) {
         handler(cpu);
     } else {
         printf("Unknown opcode: 0x%02X at PC: 0x%04X\n", opcode, cpu->pc - 1);
+        exit(1);
+    }
+}
+
+static void execute_cb_opcode(CPU* cpu, uint8_t opcode) {
+    opcode_func_t handler = cb_opcode_table[opcode];
+
+    if (handler != 0) {
+        handler(cpu);
+    } else {
+        printf("Unknown CB opcode: 0xCB 0x%02X at PC: 0x%04X\n", opcode, cpu->pc - 2);
         exit(1);
     }
 }

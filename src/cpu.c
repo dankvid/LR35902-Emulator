@@ -17,6 +17,8 @@ static void execute_opcode(CPU* cpu, uint8_t opcode);
 static void execute_cb_opcode(CPU* cpu, uint8_t opcode);
 static void init_opcode_table(void);
 static void init_cb_opcode_table(void);
+static uint8_t cpu_pending_interrupts(void);
+static void cpu_service_interrupt(CPU* cpu, uint8_t interrupt_bit);
 
 static void alu_add(CPU* cpu, uint8_t value);
 static void alu_adc(CPU* cpu, uint8_t value);
@@ -43,7 +45,10 @@ void cpu_init(CPU* cpu) {
     cpu->pc = 0x0100; // Initial program counter
 
     cpu->halted = 0;
+    cpu->stopped = 0;
+    cpu->halt_bug = 0;
     cpu->ime = 0; // Interrupt Master Enable
+    cpu->ime_enable_delay = 0;
     cpu->cycles = 0; // Cycle count
 
     init_opcode_table();
@@ -97,7 +102,7 @@ static uint16_t pop_u16(CPU* cpu) {
 
 static void op_stop(CPU* cpu) {
     cpu->pc++; // STOP is encoded as 0x10 0x00
-    cpu->halted = 1;
+    cpu->stopped = 1;
     cpu->cycles += 4;
 }
 
@@ -414,6 +419,7 @@ static void op_rst_38(CPU* cpu) { op_rst(cpu, 0x38); }
 static void op_reti(CPU* cpu) {
     cpu->pc = pop_u16(cpu);
     cpu->ime = 1;
+    cpu->ime_enable_delay = 0;
     cpu->cycles += 16;
 }
 
@@ -453,11 +459,12 @@ static void op_ld_a_a16(CPU* cpu) {
 
 static void op_di(CPU* cpu) {
     cpu->ime = 0;
+    cpu->ime_enable_delay = 0;
     cpu->cycles += 4;
 }
 
 static void op_ei(CPU* cpu) {
-    cpu->ime = 1;
+    cpu->ime_enable_delay = 2;
     cpu->cycles += 4;
 }
 
@@ -725,7 +732,13 @@ static void op_load_hlp_d8(CPU* cpu) {
 }
 
 static void op_halt(CPU* cpu) {
-    cpu->halted = 1;
+    uint8_t pending_interrupts = cpu_pending_interrupts();
+
+    if (!cpu->ime && pending_interrupts) {
+        cpu->halt_bug = 1;
+    } else {
+        cpu->halted = 1;
+    }
     cpu->cycles += 4;
 }
 
@@ -1555,14 +1568,63 @@ static void init_cb_opcode_table(void) {
     REGISTER_CB_OPCODE(0x4F, cb_bit_1_a);
 }
 
+static uint8_t cpu_pending_interrupts(void) {
+    return mem_read(0xFF0F) & mem_read(0xFFFF) & 0x1F;
+}
+
+static void cpu_service_interrupt(CPU* cpu, uint8_t interrupt_bit) {
+    static const uint16_t vectors[5] = {0x40, 0x48, 0x50, 0x58, 0x60};
+    uint8_t if_reg = mem_read(0xFF0F);
+
+    cpu->ime = 0;
+    cpu->ime_enable_delay = 0;
+    cpu->halted = 0;
+    cpu->stopped = 0;
+
+    mem_write(0xFF0F, (uint8_t)(if_reg & ~(1u << interrupt_bit)));
+    push_u16(cpu, cpu->pc);
+    cpu->pc = vectors[interrupt_bit];
+    cpu->cycles += 20;
+}
+
 void cpu_step(CPU* cpu) {
-    if (cpu->halted) {
-        cpu->cycles += 4; // maybe do nothing or wait for an interrupt
+    uint8_t pending_interrupts = cpu_pending_interrupts();
+
+    if ((cpu->halted || cpu->stopped) && pending_interrupts) {
+        cpu->halted = 0;
+        cpu->stopped = 0;
+    }
+
+    if (cpu->ime && pending_interrupts) {
+        for (uint8_t i = 0; i < 5; i++) {
+            if (pending_interrupts & (1u << i)) {
+                cpu_service_interrupt(cpu, i);
+                return;
+            }
+        }
+    }
+
+    if (cpu->halted || cpu->stopped) {
+        cpu->cycles += 4;
         return;
     }
 
-    uint8_t opcode = mem_read(cpu->pc++);
+    uint8_t opcode;
+    if (cpu->halt_bug) {
+        opcode = mem_read(cpu->pc);
+        cpu->halt_bug = 0;
+    } else {
+        opcode = mem_read(cpu->pc++);
+    }
+
     execute_opcode(cpu, opcode);
+
+    if (cpu->ime_enable_delay > 0) {
+        cpu->ime_enable_delay--;
+        if (cpu->ime_enable_delay == 0) {
+            cpu->ime = 1;
+        }
+    }
 }
 
 void execute_opcode(CPU* cpu, uint8_t opcode) {

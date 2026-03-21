@@ -24,7 +24,10 @@ typedef struct {
 
     // CPU Status
     bool halted;
+    bool stopped;
+    bool halt_bug;
     bool ime;
+    uint8_t ime_enable_delay;
     uint32_t cycles;
 } CPU;
 

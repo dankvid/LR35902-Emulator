@@ -923,6 +923,293 @@ static void op_cp_hlp(CPU* cpu) {
 }
 static void op_cp_a(CPU* cpu) { alu_cp(cpu, cpu->a); cpu->cycles += 4; }
 
+static uint8_t cb_rlc_value(CPU* cpu, uint8_t value) {
+    uint8_t carry = (value >> 7) & 1;
+    uint8_t result = (uint8_t)((value << 1) | carry);
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static uint8_t cb_rrc_value(CPU* cpu, uint8_t value) {
+    uint8_t carry = value & 1;
+    uint8_t result = (uint8_t)((value >> 1) | (carry << 7));
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static uint8_t cb_rl_value(CPU* cpu, uint8_t value) {
+    uint8_t old_carry = (cpu->f & FLAG_C) ? 1 : 0;
+    uint8_t carry = (value >> 7) & 1;
+    uint8_t result = (uint8_t)((value << 1) | old_carry);
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static uint8_t cb_rr_value(CPU* cpu, uint8_t value) {
+    uint8_t old_carry = (cpu->f & FLAG_C) ? 1 : 0;
+    uint8_t carry = value & 1;
+    uint8_t result = (uint8_t)((value >> 1) | (old_carry << 7));
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static uint8_t cb_sla_value(CPU* cpu, uint8_t value) {
+    uint8_t carry = (value >> 7) & 1;
+    uint8_t result = (uint8_t)(value << 1);
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static uint8_t cb_sra_value(CPU* cpu, uint8_t value) {
+    uint8_t carry = value & 1;
+    uint8_t msb = value & 0x80;
+    uint8_t result = (uint8_t)((value >> 1) | msb);
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static uint8_t cb_swap_value(CPU* cpu, uint8_t value) {
+    uint8_t result = (uint8_t)((value << 4) | (value >> 4));
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+
+    return result;
+}
+
+static uint8_t cb_srl_value(CPU* cpu, uint8_t value) {
+    uint8_t carry = value & 1;
+    uint8_t result = (uint8_t)(value >> 1);
+
+    cpu->f = 0;
+    if (result == 0) cpu->f |= FLAG_Z;
+    if (carry) cpu->f |= FLAG_C;
+
+    return result;
+}
+
+static void cb_bit_value(CPU* cpu, uint8_t bit, uint8_t value) {
+    uint8_t carry = cpu->f & FLAG_C;
+
+    cpu->f = carry | FLAG_H;
+    if ((value & (1u << bit)) == 0) cpu->f |= FLAG_Z;
+}
+
+static void cb_rlc_b(CPU* cpu) { cpu->b = cb_rlc_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_rlc_c(CPU* cpu) { cpu->c = cb_rlc_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_rlc_d(CPU* cpu) { cpu->d = cb_rlc_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_rlc_e(CPU* cpu) { cpu->e = cb_rlc_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_rlc_h(CPU* cpu) { cpu->h = cb_rlc_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_rlc_l(CPU* cpu) { cpu->l = cb_rlc_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_rlc_a(CPU* cpu) { cpu->a = cb_rlc_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_rlc_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_rlc_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_rrc_b(CPU* cpu) { cpu->b = cb_rrc_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_rrc_c(CPU* cpu) { cpu->c = cb_rrc_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_rrc_d(CPU* cpu) { cpu->d = cb_rrc_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_rrc_e(CPU* cpu) { cpu->e = cb_rrc_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_rrc_h(CPU* cpu) { cpu->h = cb_rrc_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_rrc_l(CPU* cpu) { cpu->l = cb_rrc_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_rrc_a(CPU* cpu) { cpu->a = cb_rrc_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_rrc_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_rrc_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_rl_b(CPU* cpu) { cpu->b = cb_rl_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_rl_c(CPU* cpu) { cpu->c = cb_rl_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_rl_d(CPU* cpu) { cpu->d = cb_rl_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_rl_e(CPU* cpu) { cpu->e = cb_rl_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_rl_h(CPU* cpu) { cpu->h = cb_rl_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_rl_l(CPU* cpu) { cpu->l = cb_rl_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_rl_a(CPU* cpu) { cpu->a = cb_rl_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_rl_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_rl_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_rr_b(CPU* cpu) { cpu->b = cb_rr_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_rr_c(CPU* cpu) { cpu->c = cb_rr_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_rr_d(CPU* cpu) { cpu->d = cb_rr_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_rr_e(CPU* cpu) { cpu->e = cb_rr_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_rr_h(CPU* cpu) { cpu->h = cb_rr_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_rr_l(CPU* cpu) { cpu->l = cb_rr_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_rr_a(CPU* cpu) { cpu->a = cb_rr_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_rr_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_rr_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_sla_b(CPU* cpu) { cpu->b = cb_sla_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_sla_c(CPU* cpu) { cpu->c = cb_sla_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_sla_d(CPU* cpu) { cpu->d = cb_sla_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_sla_e(CPU* cpu) { cpu->e = cb_sla_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_sla_h(CPU* cpu) { cpu->h = cb_sla_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_sla_l(CPU* cpu) { cpu->l = cb_sla_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_sla_a(CPU* cpu) { cpu->a = cb_sla_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_sla_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_sla_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_sra_b(CPU* cpu) { cpu->b = cb_sra_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_sra_c(CPU* cpu) { cpu->c = cb_sra_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_sra_d(CPU* cpu) { cpu->d = cb_sra_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_sra_e(CPU* cpu) { cpu->e = cb_sra_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_sra_h(CPU* cpu) { cpu->h = cb_sra_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_sra_l(CPU* cpu) { cpu->l = cb_sra_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_sra_a(CPU* cpu) { cpu->a = cb_sra_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_sra_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_sra_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_swap_b(CPU* cpu) { cpu->b = cb_swap_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_swap_c(CPU* cpu) { cpu->c = cb_swap_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_swap_d(CPU* cpu) { cpu->d = cb_swap_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_swap_e(CPU* cpu) { cpu->e = cb_swap_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_swap_h(CPU* cpu) { cpu->h = cb_swap_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_swap_l(CPU* cpu) { cpu->l = cb_swap_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_swap_a(CPU* cpu) { cpu->a = cb_swap_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_swap_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_swap_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_srl_b(CPU* cpu) { cpu->b = cb_srl_value(cpu, cpu->b); cpu->cycles += 8; }
+static void cb_srl_c(CPU* cpu) { cpu->c = cb_srl_value(cpu, cpu->c); cpu->cycles += 8; }
+static void cb_srl_d(CPU* cpu) { cpu->d = cb_srl_value(cpu, cpu->d); cpu->cycles += 8; }
+static void cb_srl_e(CPU* cpu) { cpu->e = cb_srl_value(cpu, cpu->e); cpu->cycles += 8; }
+static void cb_srl_h(CPU* cpu) { cpu->h = cb_srl_value(cpu, cpu->h); cpu->cycles += 8; }
+static void cb_srl_l(CPU* cpu) { cpu->l = cb_srl_value(cpu, cpu->l); cpu->cycles += 8; }
+static void cb_srl_a(CPU* cpu) { cpu->a = cb_srl_value(cpu, cpu->a); cpu->cycles += 8; }
+static void cb_srl_hlp(CPU* cpu) {
+    uint16_t hl = cpu_get_hl(cpu);
+    uint8_t value = mem_read(hl);
+    mem_write(hl, cb_srl_value(cpu, value));
+    cpu->cycles += 16;
+}
+
+static void cb_bit_0_b(CPU* cpu) { cb_bit_value(cpu, 0, cpu->b); cpu->cycles += 8; }
+static void cb_bit_0_c(CPU* cpu) { cb_bit_value(cpu, 0, cpu->c); cpu->cycles += 8; }
+static void cb_bit_0_d(CPU* cpu) { cb_bit_value(cpu, 0, cpu->d); cpu->cycles += 8; }
+static void cb_bit_0_e(CPU* cpu) { cb_bit_value(cpu, 0, cpu->e); cpu->cycles += 8; }
+static void cb_bit_0_h(CPU* cpu) { cb_bit_value(cpu, 0, cpu->h); cpu->cycles += 8; }
+static void cb_bit_0_l(CPU* cpu) { cb_bit_value(cpu, 0, cpu->l); cpu->cycles += 8; }
+static void cb_bit_0_a(CPU* cpu) { cb_bit_value(cpu, 0, cpu->a); cpu->cycles += 8; }
+static void cb_bit_0_hlp(CPU* cpu) {
+    cb_bit_value(cpu, 0, mem_read(cpu_get_hl(cpu)));
+    cpu->cycles += 12;
+}
+
+static void cb_bit_1_b(CPU* cpu) { cb_bit_value(cpu, 1, cpu->b); cpu->cycles += 8; }
+static void cb_bit_1_c(CPU* cpu) { cb_bit_value(cpu, 1, cpu->c); cpu->cycles += 8; }
+static void cb_bit_1_d(CPU* cpu) { cb_bit_value(cpu, 1, cpu->d); cpu->cycles += 8; }
+static void cb_bit_1_e(CPU* cpu) { cb_bit_value(cpu, 1, cpu->e); cpu->cycles += 8; }
+static void cb_bit_1_h(CPU* cpu) { cb_bit_value(cpu, 1, cpu->h); cpu->cycles += 8; }
+static void cb_bit_1_l(CPU* cpu) { cb_bit_value(cpu, 1, cpu->l); cpu->cycles += 8; }
+static void cb_bit_1_a(CPU* cpu) { cb_bit_value(cpu, 1, cpu->a); cpu->cycles += 8; }
+static void cb_bit_1_hlp(CPU* cpu) {
+    cb_bit_value(cpu, 1, mem_read(cpu_get_hl(cpu)));
+    cpu->cycles += 12;
+}
+
+static uint8_t cb_read_operand(CPU* cpu, uint8_t reg_index) {
+    switch (reg_index) {
+        case 0: return cpu->b;
+        case 1: return cpu->c;
+        case 2: return cpu->d;
+        case 3: return cpu->e;
+        case 4: return cpu->h;
+        case 5: return cpu->l;
+        case 6: return mem_read(cpu_get_hl(cpu));
+        default: return cpu->a;
+    }
+}
+
+static void cb_write_operand(CPU* cpu, uint8_t reg_index, uint8_t value) {
+    switch (reg_index) {
+        case 0: cpu->b = value; break;
+        case 1: cpu->c = value; break;
+        case 2: cpu->d = value; break;
+        case 3: cpu->e = value; break;
+        case 4: cpu->h = value; break;
+        case 5: cpu->l = value; break;
+        case 6: mem_write(cpu_get_hl(cpu), value); break;
+        default: cpu->a = value; break;
+    }
+}
+
+static void cb_execute_bit_opcode(CPU* cpu, uint8_t opcode) {
+    uint8_t bit = (uint8_t)((opcode - 0x40) >> 3);
+    uint8_t reg_index = opcode & 0x07;
+    uint8_t value = cb_read_operand(cpu, reg_index);
+
+    cb_bit_value(cpu, bit, value);
+    cpu->cycles += (reg_index == 6) ? 12 : 8;
+}
+
+static void cb_execute_res_opcode(CPU* cpu, uint8_t opcode) {
+    uint8_t bit = (uint8_t)((opcode - 0x80) >> 3);
+    uint8_t reg_index = opcode & 0x07;
+    uint8_t value = cb_read_operand(cpu, reg_index);
+
+    value &= (uint8_t)~(1u << bit);
+    cb_write_operand(cpu, reg_index, value);
+    cpu->cycles += (reg_index == 6) ? 16 : 8;
+}
+
+static void cb_execute_set_opcode(CPU* cpu, uint8_t opcode) {
+    uint8_t bit = (uint8_t)((opcode - 0xC0) >> 3);
+    uint8_t reg_index = opcode & 0x07;
+    uint8_t value = cb_read_operand(cpu, reg_index);
+
+    value |= (uint8_t)(1u << bit);
+    cb_write_operand(cpu, reg_index, value);
+    cpu->cycles += (reg_index == 6) ? 16 : 8;
+}
+
 
 static void init_opcode_table() {
     memset(opcode_table, 0, sizeof(opcode_table));
@@ -1176,6 +1463,96 @@ static void init_opcode_table() {
 
 static void init_cb_opcode_table(void) {
     memset(cb_opcode_table, 0, sizeof(cb_opcode_table));
+
+    REGISTER_CB_OPCODE(0x00, cb_rlc_b);
+    REGISTER_CB_OPCODE(0x01, cb_rlc_c);
+    REGISTER_CB_OPCODE(0x02, cb_rlc_d);
+    REGISTER_CB_OPCODE(0x03, cb_rlc_e);
+    REGISTER_CB_OPCODE(0x04, cb_rlc_h);
+    REGISTER_CB_OPCODE(0x05, cb_rlc_l);
+    REGISTER_CB_OPCODE(0x06, cb_rlc_hlp);
+    REGISTER_CB_OPCODE(0x07, cb_rlc_a);
+
+    REGISTER_CB_OPCODE(0x08, cb_rrc_b);
+    REGISTER_CB_OPCODE(0x09, cb_rrc_c);
+    REGISTER_CB_OPCODE(0x0A, cb_rrc_d);
+    REGISTER_CB_OPCODE(0x0B, cb_rrc_e);
+    REGISTER_CB_OPCODE(0x0C, cb_rrc_h);
+    REGISTER_CB_OPCODE(0x0D, cb_rrc_l);
+    REGISTER_CB_OPCODE(0x0E, cb_rrc_hlp);
+    REGISTER_CB_OPCODE(0x0F, cb_rrc_a);
+
+    REGISTER_CB_OPCODE(0x10, cb_rl_b);
+    REGISTER_CB_OPCODE(0x11, cb_rl_c);
+    REGISTER_CB_OPCODE(0x12, cb_rl_d);
+    REGISTER_CB_OPCODE(0x13, cb_rl_e);
+    REGISTER_CB_OPCODE(0x14, cb_rl_h);
+    REGISTER_CB_OPCODE(0x15, cb_rl_l);
+    REGISTER_CB_OPCODE(0x16, cb_rl_hlp);
+    REGISTER_CB_OPCODE(0x17, cb_rl_a);
+
+    REGISTER_CB_OPCODE(0x18, cb_rr_b);
+    REGISTER_CB_OPCODE(0x19, cb_rr_c);
+    REGISTER_CB_OPCODE(0x1A, cb_rr_d);
+    REGISTER_CB_OPCODE(0x1B, cb_rr_e);
+    REGISTER_CB_OPCODE(0x1C, cb_rr_h);
+    REGISTER_CB_OPCODE(0x1D, cb_rr_l);
+    REGISTER_CB_OPCODE(0x1E, cb_rr_hlp);
+    REGISTER_CB_OPCODE(0x1F, cb_rr_a);
+
+    REGISTER_CB_OPCODE(0x20, cb_sla_b);
+    REGISTER_CB_OPCODE(0x21, cb_sla_c);
+    REGISTER_CB_OPCODE(0x22, cb_sla_d);
+    REGISTER_CB_OPCODE(0x23, cb_sla_e);
+    REGISTER_CB_OPCODE(0x24, cb_sla_h);
+    REGISTER_CB_OPCODE(0x25, cb_sla_l);
+    REGISTER_CB_OPCODE(0x26, cb_sla_hlp);
+    REGISTER_CB_OPCODE(0x27, cb_sla_a);
+
+    REGISTER_CB_OPCODE(0x28, cb_sra_b);
+    REGISTER_CB_OPCODE(0x29, cb_sra_c);
+    REGISTER_CB_OPCODE(0x2A, cb_sra_d);
+    REGISTER_CB_OPCODE(0x2B, cb_sra_e);
+    REGISTER_CB_OPCODE(0x2C, cb_sra_h);
+    REGISTER_CB_OPCODE(0x2D, cb_sra_l);
+    REGISTER_CB_OPCODE(0x2E, cb_sra_hlp);
+    REGISTER_CB_OPCODE(0x2F, cb_sra_a);
+
+    REGISTER_CB_OPCODE(0x30, cb_swap_b);
+    REGISTER_CB_OPCODE(0x31, cb_swap_c);
+    REGISTER_CB_OPCODE(0x32, cb_swap_d);
+    REGISTER_CB_OPCODE(0x33, cb_swap_e);
+    REGISTER_CB_OPCODE(0x34, cb_swap_h);
+    REGISTER_CB_OPCODE(0x35, cb_swap_l);
+    REGISTER_CB_OPCODE(0x36, cb_swap_hlp);
+    REGISTER_CB_OPCODE(0x37, cb_swap_a);
+
+    REGISTER_CB_OPCODE(0x38, cb_srl_b);
+    REGISTER_CB_OPCODE(0x39, cb_srl_c);
+    REGISTER_CB_OPCODE(0x3A, cb_srl_d);
+    REGISTER_CB_OPCODE(0x3B, cb_srl_e);
+    REGISTER_CB_OPCODE(0x3C, cb_srl_h);
+    REGISTER_CB_OPCODE(0x3D, cb_srl_l);
+    REGISTER_CB_OPCODE(0x3E, cb_srl_hlp);
+    REGISTER_CB_OPCODE(0x3F, cb_srl_a);
+
+    REGISTER_CB_OPCODE(0x40, cb_bit_0_b);
+    REGISTER_CB_OPCODE(0x41, cb_bit_0_c);
+    REGISTER_CB_OPCODE(0x42, cb_bit_0_d);
+    REGISTER_CB_OPCODE(0x43, cb_bit_0_e);
+    REGISTER_CB_OPCODE(0x44, cb_bit_0_h);
+    REGISTER_CB_OPCODE(0x45, cb_bit_0_l);
+    REGISTER_CB_OPCODE(0x46, cb_bit_0_hlp);
+    REGISTER_CB_OPCODE(0x47, cb_bit_0_a);
+
+    REGISTER_CB_OPCODE(0x48, cb_bit_1_b);
+    REGISTER_CB_OPCODE(0x49, cb_bit_1_c);
+    REGISTER_CB_OPCODE(0x4A, cb_bit_1_d);
+    REGISTER_CB_OPCODE(0x4B, cb_bit_1_e);
+    REGISTER_CB_OPCODE(0x4C, cb_bit_1_h);
+    REGISTER_CB_OPCODE(0x4D, cb_bit_1_l);
+    REGISTER_CB_OPCODE(0x4E, cb_bit_1_hlp);
+    REGISTER_CB_OPCODE(0x4F, cb_bit_1_a);
 }
 
 void cpu_step(CPU* cpu) {
@@ -1205,6 +1582,12 @@ static void execute_cb_opcode(CPU* cpu, uint8_t opcode) {
 
     if (handler != 0) {
         handler(cpu);
+    } else if (opcode >= 0x50 && opcode <= 0x7F) {
+        cb_execute_bit_opcode(cpu, opcode);
+    } else if (opcode >= 0x80 && opcode <= 0xBF) {
+        cb_execute_res_opcode(cpu, opcode);
+    } else if (opcode >= 0xC0) {
+        cb_execute_set_opcode(cpu, opcode);
     } else {
         printf("Unknown CB opcode: 0xCB 0x%02X at PC: 0x%04X\n", opcode, cpu->pc - 2);
         exit(1);

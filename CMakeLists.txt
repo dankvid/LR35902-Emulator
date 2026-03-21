@@ -27,3 +27,14 @@ add_executable(opcode_non_cb_tests
 target_include_directories(opcode_non_cb_tests PRIVATE include)
 
 add_test(NAME opcode_non_cb_tests COMMAND opcode_non_cb_tests)
+
+add_executable(opcode_cb_tests
+        tests/opcode_cb_tests.c
+        src/cpu.c
+        src/memory.c
+)
+
+target_include_directories(opcode_cb_tests PRIVATE include)
+
+add_test(NAME opcode_cb_tests COMMAND opcode_cb_tests)
+
